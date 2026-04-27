@@ -92,9 +92,15 @@ async function check() {
   });
 
   const data = await response.json();
-  const output = data.choices[0].message.content;
 
-  document.getElementById("result").innerHTML = colorize(output);
+if (!data.choices) {
+  document.getElementById("result").innerText =
+    "エラー：" + JSON.stringify(data);
+  return;
+}
+
+const output = data.choices[0].message.content;
+document.getElementById("result").innerHTML = colorize(output);
 }
 
 function colorize(text) {
