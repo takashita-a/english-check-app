@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>英作文添削ツール</title>
+
+<style>
+body { font-family: sans-serif; padding: 20px; }
+
+textarea {
+  width: 100%;
+  height: 150px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.result span {
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin: 2px;
+  display: inline-block;
+}
+
+/* 色分け */
+.P { background: #ffe0e0; }
+.SPL { background: #fff0b3; }
+.WM { background: #e0f7ff; }
+.VM { background: #d4ffd4; }
+.WC { background: #ffd9b3; }
+.WF { background: #e6ccff; }
+.WO { background: #ccccff; }
+.VT { background: #ffccff; }
+.SV { background: #ffb3b3; }
+.PRO { background: #ccffe6; }
+.PREP { background: #cce0ff; }
+.PL { background: #f2f2f2; }
+.ART { background: #ffffcc; }
+.IG { background: #ffd6cc; }
+.FRAG { background: #ff9999; }
+</style>
+</head>
+
+<body>
+
+<h2>英作文添削ツール</h2>
+
+<textarea id="inputText" placeholder="英文を入力してください"></textarea><br>
+<button onclick="check()">添削する</button>
+
+<div id="result" class="result"></div>
+
+<script>
+async function check() {
+  const text = document.getElementById("inputText").value;
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer YOUR_API_KEY"
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "あなたは英語教師です。エラーシンボル（P, SPL, WM, VM, WC, WF, WO, VT, S/V, PRO, PREP, PL, ART, I/G, FRAG）を使って添削してください。"
+        },
+        {
+          role: "user",
+          content: text
+        }
+      ]
+    })
+  });
+
+  const data = await response.json();
+  const output = data.choices[0].message.content;
+
+  document.getElementById("result").innerHTML = colorize(output);
+}
+
+function colorize(text) {
+  const symbols = [
+    "P","SPL","WM","VM","WC","WF","WO","VT",
+    "S/V","PRO","PREP","PL","ART","I/G","FRAG"
+  ];
+
+  let result = text;
+
+  symbols.forEach(sym => {
+    const safe = sym.replace("/", "");
+    const regex = new RegExp(sym, "g");
+    result = result.replace(regex,
+      `<span class="${safe}">${sym}</span>`);
+  });
+
+  return result;
+}
+</script>
+
+</body>
+</html>
